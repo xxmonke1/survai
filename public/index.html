@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Surveillance Interface</title>
+  <title>Neural Surveillance Interface</title>
   <style>
-    /* Global Styles */
     body {
       margin: 0;
       padding: 0;
@@ -20,12 +19,6 @@
       overflow: hidden;
     }
 
-    /* Hide default scrollbars */
-    ::-webkit-scrollbar {
-      display: none;
-    }
-
-    /* Glitch effect */
     @keyframes glitch {
       0% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
       25% { text-shadow: -2px 0 0 red, 2px 0 0 blue; }
@@ -34,7 +27,6 @@
       100% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
     }
 
-    /* Scan line effect */
     @keyframes scan {
       0% { transform: translateY(-100%); }
       100% { transform: translateY(100%); }
@@ -62,6 +54,9 @@
       border-radius: 5px;
       background: #001100;
       position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       overflow: hidden;
     }
 
@@ -95,17 +90,7 @@
       height: 100%;
       border: none;
       filter: sepia(0.5) hue-rotate(70deg);
-      object-fit: cover;
-    }
-
-    .terminal {
-      background: rgba(0, 20, 0, 0.9);
-      border: 2px solid #0f0;
-      height: 200px;
-      padding: 10px;
-      font-size: 0.9rem;
-      overflow-y: auto;
-      margin-bottom: 20px;
+      object-fit: contain;
     }
 
     .status-bar {
@@ -123,14 +108,8 @@
       height: 200px;
       padding: 10px;
       font-size: 0.9rem;
-      overflow: hidden;
+      overflow-y: auto;
       margin-bottom: 20px;
-      cursor: grab;
-      user-select: none;
-    }
-
-    .terminal:active {
-      cursor: grabbing;
     }
 
     .terminal p {
@@ -217,37 +196,6 @@
     const terminalLog = document.getElementById("terminal-log");
     const timestampEl = document.getElementById("timestamp");
     const coordinatesEl = document.getElementById("coordinates");
-    const terminal = document.querySelector('.terminal');
-
-    // Drag scrolling functionality
-    let isDown = false;
-    let startY;
-    let scrollTop;
-
-    terminal.addEventListener('mousedown', (e) => {
-      isDown = true;
-      terminal.style.cursor = 'grabbing';
-      startY = e.pageY - terminal.offsetTop;
-      scrollTop = terminal.scrollTop;
-    });
-
-    terminal.addEventListener('mouseleave', () => {
-      isDown = false;
-      terminal.style.cursor = 'grab';
-    });
-
-    terminal.addEventListener('mouseup', () => {
-      isDown = false;
-      terminal.style.cursor = 'grab';
-    });
-
-    terminal.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const y = e.pageY - terminal.offsetTop;
-      const walk = (y - startY) * 2;
-      terminal.scrollTop = scrollTop - walk;
-    });
 
     let terminalContent = [
       "[SYSTEM] Initializing neural pathway sequence...",
@@ -263,7 +211,7 @@
     function updateTerminal(content) {
       const timestamp = new Date().toLocaleTimeString();
       terminalLog.innerHTML += `<br>[${timestamp}] ${content}`;
-      terminal.scrollTop = terminal.scrollHeight;
+      terminalLog.scrollTop = terminalLog.scrollHeight;
     }
 
     function updateTimestamp() {
@@ -286,10 +234,10 @@
         } else {
           clearInterval(interval);
           fetch(API_URL)
-    .then(response => response.json())
-    .then(data => {
-        cameraFeed.src = `${API_URL.split('/random-camera')[0]}${data.proxyUrl}`;
-        cameraFeed.classList.remove("hidden");
+            .then(response => response.json())
+            .then(data => {
+              cameraFeed.src = `${API_URL.split('/random-camera')[0]}${data.proxyUrl}`;
+              cameraFeed.classList.remove("hidden");
               coordinatesEl.textContent = generateRandomCoordinates();
               setInterval(updateTimestamp, 1000);
               randomizeButton.disabled = false;
