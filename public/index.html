@@ -286,10 +286,10 @@
         } else {
           clearInterval(interval);
           fetch(API_URL)
-            .then(response => response.json())
-            .then(data => {
-              cameraFeed.src = data.url;
-              cameraFeed.classList.remove("hidden");
+    .then(response => response.json())
+    .then(data => {
+        cameraFeed.src = `${API_URL.split('/random-camera')[0]}${data.proxyUrl}`;
+        cameraFeed.classList.remove("hidden");
               coordinatesEl.textContent = generateRandomCoordinates();
               setInterval(updateTimestamp, 1000);
               randomizeButton.disabled = false;

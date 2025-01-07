@@ -1,13 +1,12 @@
 const express = require("express");
 const cors = require("cors");
+const request = require("request");
 const path = require("path");
 
 const app = express();
 app.use(cors());
 
-const PORT = 3000;
-
-// List of random camera feeds
+// Your existing camera feeds array
 const cameraFeeds = [
 "http://66.27.116.187/mjpg/video.mjpg",
 "http://166.167.10.120/mjpg/video.mjpg",
@@ -444,25 +443,35 @@ const cameraFeeds = [
 "http://24.23.252.90/jpg/image.jpg?0",
 "http://91.247.124.105:8081/cgi-bin/snapshot.cgi?1736131963",
 "http://87.248.168.168:8082/webcapture.jpg?command=snap&channel=1?0"
-
-
 ];
+
+// Add this new proxy endpoint
+app.get("/proxy/:id", (req, res) => {
+    const id = parseInt(req.params.id);
+    const cameraUrl = cameraFeeds[id];
+    if (!cameraUrl) {
+        return res.status(404).send("Camera not found");
+    }
+    request(cameraUrl).pipe(res);
+});
+
+// Modified random camera endpoint
+app.get("/random-camera", (req, res) => {
+    const randomId = Math.floor(Math.random() * cameraFeeds.length);
+    res.json({ 
+        id: randomId,
+        proxyUrl: `/proxy/${randomId}`
+    });
+});
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API endpoint to fetch a random camera feed
-app.get("/random-camera", (req, res) => {
-  const randomFeed = cameraFeeds[Math.floor(Math.random() * cameraFeeds.length)];
-  res.json({ url: randomFeed });
-});
-
-// Serve index.html when accessing the root route
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start the server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+    console.log(`Server is running at http://localhost:${PORT}`);
 });
