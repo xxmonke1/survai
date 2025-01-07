@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Surveillance Interface</title>
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', Courier, monospace;
+      background: #000;
+      color: #0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Hide default scrollbars */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Glitch effect */
+    @keyframes glitch {
+      0% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
+      25% { text-shadow: -2px 0 0 red, 2px 0 0 blue; }
+      50% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
+      75% { text-shadow: -2px 0 0 red, 2px 0 0 blue; }
+      100% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
+    }
+
+    /* Scan line effect */
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      text-align: center;
+      text-shadow: 0 0 20px #0f0;
+      animation: glitch 5s infinite;
+      margin-bottom: 2rem;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      position: relative;
+    }
+
+    .video-container {
+      width: 100%;
+      height: 450px;
+      border: 3px solid #0f0;
+      margin: 20px 0;
+      border-radius: 5px;
+      background: #001100;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(transparent 50%, rgba(0, 255, 0, 0.025) 50%);
+      background-size: 100% 4px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .video-container::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(0, 255, 0, 0.1), transparent);
+      animation: scan 8s linear infinite;
+      pointer-events: none;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      filter: sepia(0.5) hue-rotate(70deg);
+      object-fit: cover;
+    }
+
+    .terminal {
+      background: rgba(0, 20, 0, 0.9);
+      border: 2px solid #0f0;
+      height: 200px;
+      padding: 10px;
+      font-size: 0.9rem;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px;
+      border: 2px solid #0f0;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+    }
+
+    .terminal {
+      background: rgba(0, 20, 0, 0.9);
+      border: 2px solid #0f0;
+      height: 200px;
+      padding: 10px;
+      font-size: 0.9rem;
+      overflow: hidden;
+      margin-bottom: 20px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .terminal:active {
+      cursor: grabbing;
+    }
+
+    .terminal p {
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      background: transparent;
+      border: 2px solid #0f0;
+      color: #0f0;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      background: #0f0;
+      color: #000;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .coordinates {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 0.8rem;
+      color: #0f0;
+      z-index: 3;
+      text-shadow: 0 0 5px #0f0;
+    }
+
+    .timestamp {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 0.8rem;
+      color: #0f0;
+      z-index: 3;
+      text-shadow: 0 0 5px #0f0;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>NEURAL SURVEILLANCE INTERFACE v2.4.5</h1>
+    
+    <div class="status-bar">
+      <span id="connection-status">STATUS: SECURE</span>
+      <span id="encryption">ENCRYPTION: AES-256</span>
+      <span id="ping">PING: 127ms</span>
+    </div>
+
+    <div class="video-container">
+      <div class="coordinates" id="coordinates">LAT: --.----- LON: --.-----</div>
+      <div class="timestamp" id="timestamp">--:--:-- UTC</div>
+      <iframe id="camera-feed" class="hidden" scrolling="no" frameborder="0"></iframe>
+    </div>
+
+    <div class="terminal">
+      <p id="terminal-log">[SYSTEM] Neural Interface Initialized...</p>
+    </div>
+
+    <button id="randomize-button">INITIATE NEURAL ACCESS SEQUENCE</button>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:3000/random-camera";
+    const cameraFeed = document.getElementById("camera-feed");
+    const randomizeButton = document.getElementById("randomize-button");
+    const terminalLog = document.getElementById("terminal-log");
+    const timestampEl = document.getElementById("timestamp");
+    const coordinatesEl = document.getElementById("coordinates");
+    const terminal = document.querySelector('.terminal');
+
+    // Drag scrolling functionality
+    let isDown = false;
+    let startY;
+    let scrollTop;
+
+    terminal.addEventListener('mousedown', (e) => {
+      isDown = true;
+      terminal.style.cursor = 'grabbing';
+      startY = e.pageY - terminal.offsetTop;
+      scrollTop = terminal.scrollTop;
+    });
+
+    terminal.addEventListener('mouseleave', () => {
+      isDown = false;
+      terminal.style.cursor = 'grab';
+    });
+
+    terminal.addEventListener('mouseup', () => {
+      isDown = false;
+      terminal.style.cursor = 'grab';
+    });
+
+    terminal.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const y = e.pageY - terminal.offsetTop;
+      const walk = (y - startY) * 2;
+      terminal.scrollTop = scrollTop - walk;
+    });
+
+    let terminalContent = [
+      "[SYSTEM] Initializing neural pathway sequence...",
+      "[NEURAL] Mapping security node topology...",
+      "[PROCESS] Executing distributed quantum breach...",
+      "[SECURITY] Bypassing blockchain firewall layers...",
+      "[NETWORK] Establishing encrypted P2P tunnel...",
+      "[AI] Deploying neural pattern recognition...",
+      "[SYSTEM] Decrypting secure feed protocols...",
+      "[SUCCESS] Neural access granted - Beginning stream..."
+    ];
+
+    function updateTerminal(content) {
+      const timestamp = new Date().toLocaleTimeString();
+      terminalLog.innerHTML += `<br>[${timestamp}] ${content}`;
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function updateTimestamp() {
+      const now = new Date();
+      timestampEl.textContent = now.toUTCString().split(' ')[4] + ' UTC';
+    }
+
+    function generateRandomCoordinates() {
+      const lat = (Math.random() * 180 - 90).toFixed(6);
+      const lon = (Math.random() * 360 - 180).toFixed(6);
+      return `LAT: ${lat} LON: ${lon}`;
+    }
+
+    async function loadRandomCamera() {
+      let index = 0;
+      const interval = setInterval(() => {
+        if (index < terminalContent.length) {
+          updateTerminal(terminalContent[index]);
+          index++;
+        } else {
+          clearInterval(interval);
+          fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+              cameraFeed.src = data.url;
+              cameraFeed.classList.remove("hidden");
+              coordinatesEl.textContent = generateRandomCoordinates();
+              setInterval(updateTimestamp, 1000);
+              randomizeButton.disabled = false;
+              randomizeButton.textContent = "INITIATE NEW NEURAL ACCESS SEQUENCE";
+            })
+            .catch(error => {
+              updateTerminal("[ERROR] Neural access denied: Connection failed");
+              randomizeButton.disabled = false;
+              randomizeButton.textContent = "RETRY NEURAL ACCESS SEQUENCE";
+            });
+        }
+      }, 1000);
+    }
+
+    randomizeButton.addEventListener("click", () => {
+      randomizeButton.disabled = true;
+      randomizeButton.textContent = "NEURAL SEQUENCE IN PROGRESS...";
+      terminalLog.innerHTML = "[SYSTEM] Neural Interface Initialized...";
+      cameraFeed.classList.add("hidden");
+      loadRandomCamera();
+    });
+  </script>
+</body>
+</html>
