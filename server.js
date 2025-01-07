@@ -4,7 +4,10 @@ const request = require("request");
 const path = require("path");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://surv-ai.org', 'https://survai.pages.dev'],
+  methods: ['GET', 'POST', 'OPTIONS']
+}));
 
 // Your existing camera feeds array
 const cameraFeeds = [
