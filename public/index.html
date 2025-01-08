@@ -4,63 +4,82 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Neural Surveillance Interface</title>
-  <img src="/keyhole-logo.png" alt="Surveillance Interface Logo" class="logo">
-  <link rel="icon" type="image/png" href="/keyhole-logo.png">
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="16x16">
   <style>
-    .logo {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    width: 50px;
-    height: auto;
-    z-index: 1000;
-    filter: drop-shadow(0 0 10px #0f0);
-}
-    body {
+    :root {
+      --primary-color: #00ff00;
+      --background-color: #000000;
+      --terminal-background: rgba(0, 20, 0, 0.9);
+      --border-color: var(--primary-color);
+      --text-color: var(--primary-color);
+      --hover-background: var(--primary-color);
+      --hover-text: var(--background-color);
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
       font-family: 'Courier New', Courier, monospace;
-      background: #000;
-      color: #0f0;
+      background: var(--background-color);
+      color: var(--text-color);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       min-height: 100vh;
-      overflow: hidden;
+      overflow-x: hidden;
+    }
+
+    .logo {
+      width: 400px;
+      height: 100px;
+      margin: 20px auto;
+      object-fit: contain;
+      display: block;
     }
 
     @keyframes glitch {
-      0% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
-      25% { text-shadow: -2px 0 0 red, 2px 0 0 blue; }
-      50% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
-      75% { text-shadow: -2px 0 0 red, 2px 0 0 blue; }
-      100% { text-shadow: 2px 0 0 red, -2px 0 0 blue; }
+      0%, 100% { transform: none; text-shadow: none; }
+      92% { transform: skew(-0.2deg); text-shadow: -2px 0 #ff0000, 2px 0 #0000ff; }
+      94% { transform: skew(0.3deg); text-shadow: 2px 0 #ff0000, -2px 0 #0000ff; }
+      96% { transform: skew(0.1deg); text-shadow: -2px 0 #ff0000, 2px 0 #0000ff; }
+      98% { transform: skew(-0.4deg); text-shadow: 2px 0 #ff0000, -2px 0 #0000ff; }
     }
 
     @keyframes scan {
-      0% { transform: translateY(-100%); }
-      100% { transform: translateY(100%); }
+      from { transform: translateY(-100%); }
+      to { transform: translateY(100%); }
     }
 
     h1 {
-      font-size: 2.5rem;
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
       text-align: center;
-      text-shadow: 0 0 20px #0f0;
-      animation: glitch 5s infinite;
-      margin-bottom: 2rem;
+      text-shadow: 0 0 20px var(--text-color);
+      animation: glitch 10s infinite;
+      margin: 1rem 0 2rem;
     }
-
+    .camera-feed {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh; /* If you want full viewport height */
+    }
     .container {
-      width: 90%;
-      max-width: 1200px;
+      width: min(95%, 1400px);
       position: relative;
+      margin: 0 auto;
     }
 
     .video-container {
       width: 100%;
-      height: 450px;
-      border: 3px solid #0f0;
+      height: min(70vh, 600px);
+      border: 3px solid var(--border-color);
       margin: 20px 0;
       border-radius: 5px;
       background: #001100;
@@ -69,16 +88,23 @@
       justify-content: center;
       align-items: center;
       overflow: hidden;
+      transition: all 0.3s ease;
+      aspect-ratio: 16/9;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .video-container::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(transparent 50%, rgba(0, 255, 0, 0.025) 50%);
+      inset: 0;
+      background: repeating-linear-gradient(
+        transparent 0%,
+        transparent 50%,
+        rgba(0, 255, 0, 0.025) 50%,
+        rgba(0, 255, 0, 0.025) 100%
+      );
       background-size: 100% 4px;
       z-index: 2;
       pointer-events: none;
@@ -87,64 +113,70 @@
     .video-container::after {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(rgba(0, 255, 0, 0.1), transparent);
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(0, 255, 0, 0.15) 0%,
+        transparent 50%,
+        rgba(0, 255, 0, 0.15) 100%
+      );
       animation: scan 8s linear infinite;
       pointer-events: none;
     }
 
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      filter: sepia(0.5) hue-rotate(70deg);
-      object-fit: contain;
-    }
-
     .status-bar {
       display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
       justify-content: space-between;
-      padding: 5px;
-      border: 2px solid #0f0;
+      padding: 10px;
+      border: 2px solid var(--border-color);
       margin-bottom: 10px;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
+      background: rgba(0, 20, 0, 0.3);
     }
 
     .terminal {
-      background: rgba(0, 20, 0, 0.9);
-      border: 2px solid #0f0;
+      background: var(--terminal-background);
+      border: 2px solid var(--border-color);
       height: 200px;
-      padding: 10px;
+      padding: 15px;
       font-size: 0.9rem;
-      overflow-y: auto;
+      overflow-y: scroll;
       margin-bottom: 20px;
+      line-height: 1.6;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .terminal::-webkit-scrollbar {
+      display: none;
     }
 
     .terminal p {
       margin: 0;
-      line-height: 1.4;
+      opacity: 0.9;
     }
 
     button {
       width: 100%;
       padding: 15px;
       background: transparent;
-      border: 2px solid #0f0;
-      color: #0f0;
-      font-family: 'Courier New', Courier, monospace;
+      border: 2px solid var(--border-color);
+      color: var(--text-color);
+      font-family: inherit;
       font-size: 1.1rem;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
       position: relative;
-      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
-    button:hover {
-      background: #0f0;
-      color: #000;
+    button:hover:not(:disabled) {
+      background: var(--hover-background);
+      color: var(--hover-text);
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
     }
 
     button:disabled {
@@ -152,32 +184,88 @@
       cursor: not-allowed;
     }
 
-    .coordinates {
+    .coordinates, .timestamp {
       position: absolute;
+      padding: 5px 10px;
+      font-size: 0.9rem;
+      color: var(--text-color);
+      z-index: 3;
+      text-shadow: 0 0 5px var(--text-color);
+      background: rgba(0, 20, 0, 0.7);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+    }
+
+    .coordinates {
       top: 10px;
       left: 10px;
-      font-size: 0.8rem;
-      color: #0f0;
-      z-index: 3;
-      text-shadow: 0 0 5px #0f0;
     }
 
     .timestamp {
-      position: absolute;
       top: 10px;
       right: 10px;
-      font-size: 0.8rem;
-      color: #0f0;
-      z-index: 3;
-      text-shadow: 0 0 5px #0f0;
+    }
+
+    .fullscreen-button {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      padding: 8px 15px;
+      font-size: 0.9rem;
+      z-index: 4;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      filter: sepia(0.5) hue-rotate(70deg) brightness(0.9) contrast(1.1);
+      object-fit: contain;
+      min-width: 100%;
+      min-height: 100%;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Add support for object-fit in Firefox */
+    @-moz-document url-prefix() {
+      iframe {
+        width: 100vw;
+        height: 100vh;
+        transform: translate(-50%, -50%) scale(1.01);
+      }
     }
 
     .hidden {
       display: none;
     }
+
+    @media (max-width: 600px) {
+      .status-bar {
+        font-size: 0.8rem;
+      }
+      
+      .coordinates, .timestamp {
+        font-size: 0.8rem;
+        padding: 3px 6px;
+      }
+      
+      .terminal {
+        font-size: 0.8rem;
+      }
+    }
   </style>
 </head>
 <body>
+  <img src="/keyhole-logo.png" alt="Surveillance Interface Logo" class="logo">
   <div class="container">
     <h1>NEURAL SURVEILLANCE INTERFACE v2.4.5</h1>
     
@@ -188,9 +276,10 @@
     </div>
 
     <div class="video-container">
+      <iframe id="camera-feed" class="hidden" scrolling="no" allow="fullscreen"></iframe>
       <div class="coordinates" id="coordinates">LAT: --.----- LON: --.-----</div>
       <div class="timestamp" id="timestamp">--:--:-- UTC</div>
-      <iframe id="camera-feed" class="hidden" scrolling="no" frameborder="0"></iframe>
+      <button class="fullscreen-button">FULLSCREEN</button>
     </div>
 
     <div class="terminal">
@@ -202,32 +291,36 @@
 
   <script>
     const API_URL = "https://survai-ssk8.onrender.com/random-camera";
-    const cameraFeed = document.getElementById("camera-feed");
-    const randomizeButton = document.getElementById("randomize-button");
-    const terminalLog = document.getElementById("terminal-log");
-    const timestampEl = document.getElementById("timestamp");
-    const coordinatesEl = document.getElementById("coordinates");
+    
+    const elements = {
+      cameraFeed: document.getElementById("camera-feed"),
+      randomizeButton: document.getElementById("randomize-button"),
+      terminalLog: document.getElementById("terminal-log"),
+      timestamp: document.getElementById("timestamp"),
+      coordinates: document.getElementById("coordinates"),
+      videoContainer: document.querySelector('.video-container')
+    };
 
-    let terminalContent = [
-      "[SYSTEM] Initializing neural pathway sequence...",
-      "[NEURAL] Mapping security node topology...",
-      "[PROCESS] Executing distributed quantum breach...",
-      "[SECURITY] Bypassing blockchain firewall layers...",
-      "[NETWORK] Establishing encrypted P2P tunnel...",
-      "[AI] Deploying neural pattern recognition...",
-      "[SYSTEM] Decrypting secure feed protocols...",
-      "[SUCCESS] Neural access granted - Beginning stream..."
+    const terminalContent = [
+      { text: "[SYSTEM] Initializing neural pathway sequence...", delay: 800 },
+      { text: "[NEURAL] Mapping security node topology...", delay: 1200 },
+      { text: "[PROCESS] Executing distributed quantum breach...", delay: 1500 },
+      { text: "[SECURITY] Bypassing blockchain firewall layers...", delay: 900 },
+      { text: "[NETWORK] Establishing encrypted P2P tunnel...", delay: 1100 },
+      { text: "[AI] Deploying neural pattern recognition...", delay: 700 },
+      { text: "[SYSTEM] Decrypting secure feed protocols...", delay: 1300 },
+      { text: "[SUCCESS] Neural access granted - Beginning stream...", delay: 1000 }
     ];
 
     function updateTerminal(content) {
       const timestamp = new Date().toLocaleTimeString();
-      terminalLog.innerHTML += `<br>[${timestamp}] ${content}`;
-      terminalLog.scrollTop = terminalLog.scrollHeight;
+      elements.terminalLog.innerHTML += `<br>[${timestamp}] ${content}`;
+      elements.terminalLog.scrollTop = elements.terminalLog.scrollHeight;
     }
 
     function updateTimestamp() {
       const now = new Date();
-      timestampEl.textContent = now.toUTCString().split(' ')[4] + ' UTC';
+      elements.timestamp.textContent = now.toUTCString().split(' ')[4] + ' UTC';
     }
 
     function generateRandomCoordinates() {
@@ -236,40 +329,80 @@
       return `LAT: ${lat} LON: ${lon}`;
     }
 
-    async function loadRandomCamera() {
-      let index = 0;
-      const interval = setInterval(() => {
-        if (index < terminalContent.length) {
-          updateTerminal(terminalContent[index]);
-          index++;
-        } else {
-          clearInterval(interval);
-          fetch(API_URL)
-            .then(response => response.json())
-            .then(data => {
-              cameraFeed.src = `${API_URL.split('/random-camera')[0]}${data.proxyUrl}`;
-              cameraFeed.classList.remove("hidden");
-              coordinatesEl.textContent = generateRandomCoordinates();
-              setInterval(updateTimestamp, 1000);
-              randomizeButton.disabled = false;
-              randomizeButton.textContent = "INITIATE NEW NEURAL ACCESS SEQUENCE";
-            })
-            .catch(error => {
-              updateTerminal("[ERROR] Neural access denied: Connection failed");
-              randomizeButton.disabled = false;
-              randomizeButton.textContent = "RETRY NEURAL ACCESS SEQUENCE";
-            });
-        }
-      }, 1000);
+    function updateRandomPing() {
+      const pingElement = document.getElementById("ping");
+      const randomPing = Math.floor(Math.random() * 200) + 50;
+      pingElement.textContent = `PING: ${randomPing}ms`;
     }
 
-    randomizeButton.addEventListener("click", () => {
-      randomizeButton.disabled = true;
-      randomizeButton.textContent = "NEURAL SEQUENCE IN PROGRESS...";
-      terminalLog.innerHTML = "[SYSTEM] Neural Interface Initialized...";
-      cameraFeed.classList.add("hidden");
+    async function loadRandomCamera() {
+      let promise = Promise.resolve();
+      terminalContent.forEach(({ text, delay }) => {
+        promise = promise.then(() => {
+          return new Promise(resolve => {
+            setTimeout(() => {
+              updateTerminal(text);
+              resolve();
+            }, delay);
+          });
+        });
+      });
+      
+      promise.then(() => {
+        fetchCamera();
+      });
+    }
+
+    async function fetchCamera() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        
+        elements.cameraFeed.src = `${API_URL.split('/random-camera')[0]}${data.proxyUrl}`;
+        elements.cameraFeed.classList.remove("hidden");
+        elements.coordinates.textContent = generateRandomCoordinates();
+        
+        // Start periodic updates
+        setInterval(updateTimestamp, 1000);
+        setInterval(updateRandomPing, 5000);
+        
+        elements.randomizeButton.disabled = false;
+        elements.randomizeButton.textContent = "INITIATE NEW NEURAL ACCESS SEQUENCE";
+      } catch (error) {
+        updateTerminal("[ERROR] Neural access denied: Connection failed");
+        elements.randomizeButton.disabled = false;
+        elements.randomizeButton.textContent = "RETRY NEURAL ACCESS SEQUENCE";
+      }
+    }
+
+    function toggleFullScreen(event) {
+      event.preventDefault();
+      
+      if (!document.fullscreenElement) {
+        elements.videoContainer.requestFullscreen?.() ||
+        elements.videoContainer.webkitRequestFullscreen?.() ||
+        elements.videoContainer.msRequestFullscreen?.();
+      } else {
+        document.exitFullscreen?.() ||
+        document.webkitExitFullscreen?.() ||
+        document.msExitFullscreen?.();
+      }
+    }
+
+    // Event Listeners
+    elements.videoContainer.addEventListener('click', toggleFullScreen);
+    elements.videoContainer.addEventListener('touchend', toggleFullScreen, { passive: false });
+
+    elements.randomizeButton.addEventListener("click", () => {
+      elements.randomizeButton.disabled = true;
+      elements.randomizeButton.textContent = "NEURAL SEQUENCE IN PROGRESS...";
+      elements.terminalLog.innerHTML = "[SYSTEM] Neural Interface Initialized...";
+      elements.cameraFeed.classList.add("hidden");
       loadRandomCamera();
     });
+
+    // Initialize ping updates
+    updateRandomPing();
   </script>
 </body>
 </html>
